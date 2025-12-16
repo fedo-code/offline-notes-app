@@ -1,26 +1,137 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+  --bg: #fff8ef;           /* warm ivory page background */
+  --card: #fffdf8;         /* card surface (light) */
+  --card-border: rgba(34,20,6,0.06);
+  --text: #2b2b2b;
+  --muted: #6b5e4a;
+  --accent: #f59e0b;
+  --muted-2: #a18f7a;
+  --glass: rgba(255,255,255,0.65);
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --shadow-soft: 0 8px 30px rgba(34,20,6,0.08);
+  --shadow-strong: 0 14px 50px rgba(34,20,6,0.12);
+  --radius-lg: 18px;
+  --radius-pill: 9999px;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --bg: #0b0a09;
+    --card: #0f0d0c;
+    --card-border: rgba(255,255,255,0.04);
+    --text: #eef2e9;
+    --muted: #bfb3a3;
+    --accent: #f59e0b;
+    --muted-2: #9b8b77;
+    --glass: rgba(10,10,10,0.6);
+
+    --shadow-soft: 0 8px 30px rgba(0,0,0,0.45);
+    --shadow-strong: 0 14px 50px rgba(0,0,0,0.55);
   }
 }
 
+/* Base */
+html, body { height: 100%; }
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  background: radial-gradient(1200px 600px at 10% 10%, rgba(245,158,11,0.04), transparent), var(--bg);
+  color: var(--text);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.45;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Card surface (re-usable) */
+.card-surface {
+  background: linear-gradient(180deg, var(--card), rgba(255,255,255,0.02));
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+  border: 1px solid var(--card-border);
+  color: var(--text);
+}
+
+/* Nice rounded cards used across the app */
+.note-card {
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  transition: transform 180ms cubic-bezier(.2,.9,.2,1), box-shadow 180ms ease;
+}
+.note-card:hover {
+  transform: translateY(-6px);
+  box-shadow: var(--shadow-strong);
+}
+
+/* Search wrapper styles */
+.search-wrap {
+  width: 100%;
+  max-width: 40rem;
+  background: var(--card);
+  border-radius: var(--radius-pill);
+  display: flex;
+  align-items: center;
+  border: 1px solid rgba(34,20,6,0.06);
+  box-shadow: 0 6px 20px rgba(34,20,6,0.06);
+  padding-left: .5rem;
+}
+.search-icon { padding-left: .75rem; color: var(--muted); font-size: 1.05rem; }
+.search-input {
+  flex: 1;
+  padding: .7rem 1rem;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  outline: none;
+  border: none;
+  color: inherit;
+  font-size: 1rem;
+}
+
+/* Pill buttons used for filters */
+.btn-pill {
+  border-radius: var(--radius-pill);
+  padding: .6rem 1rem;
+  font-weight: 600;
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+.btn-pill:hover { transform: translateY(-2px); }
+
+/* Small action icon chips */
+.icon-chip {
+  width: 2.25rem;
+  height: 2.25rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.6);
+  border: 1px solid rgba(34,20,6,0.04);
+  transition: background 120ms ease, transform 120ms ease;
+}
+.icon-chip:hover { transform: translateY(-2px); }
+
+/* Floating action button (Add) */
+.fab {
+  width: 4rem;
+  height: 4rem;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  background: linear-gradient(135deg, #6366f1, #06b6d4);
+  box-shadow: 0 12px 30px rgba(8,8,15,0.12);
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+.fab:hover { transform: scale(1.06); box-shadow: 0 18px 40px rgba(8,8,15,0.18); }
+
+/* Tiny utilities */
+.text-muted { color: var(--muted); }
+.kicker { font-size: .82rem; color: var(--muted-2); }
+
+/* Respect reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
 }
