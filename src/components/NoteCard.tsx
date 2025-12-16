@@ -35,7 +35,7 @@ export default function NoteCard({ note, onEdit, onPin, onDelete, onOpen }: Prop
     >
       {/* header: left = dot + small pinned placeholder; right = action buttons */}
       <div
-        className="flex items-center justify-between rounded-md px-2 py-1 mb-2"
+        className="flex items-center justify-between rounded-md px-1 sm:px-2 py-1 mb-2 flex-wrap gap-1"
         style={{
           background: "linear-gradient(90deg, rgba(255,244,230,0.95), rgba(255,250,240,0.95))",
           borderBottom: "1px solid rgba(34,20,6,0.12)",
@@ -43,7 +43,7 @@ export default function NoteCard({ note, onEdit, onPin, onDelete, onOpen }: Prop
         }}
       >
         {/* Left: Pinned indicator and title */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 sm:gap-2 min-w-0">
           <div className="shrink-0 flex items-center" onClick={(e) => e.stopPropagation()} tabIndex={-1} role="img" aria-label={`Sync status: ${note.syncStatus}`}>
             <div
               className={dotClass}
@@ -63,24 +63,24 @@ export default function NoteCard({ note, onEdit, onPin, onDelete, onOpen }: Prop
         </div>
 
         {/* Right: Action buttons as text */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
           <button
             onClick={onEdit}
-            className="text-xs px-2 py-1 rounded hover:bg-zinc-200 dark:hover:bg-zinc-700 transition"
+            className="text-[10px] sm:text-xs px-1 sm:px-2 py-0.5 rounded hover:bg-zinc-200 dark:hover:bg-zinc-700 transition"
             aria-label="Edit"
           >
             Edit
           </button>
           <button
             onClick={onPin}
-            className="text-xs px-2 py-1 rounded hover:bg-zinc-200 dark:hover:bg-zinc-700 transition"
+            className="text-[10px] sm:text-xs px-1 sm:px-2 py-0.5 rounded hover:bg-zinc-200 dark:hover:bg-zinc-700 transition"
             aria-label={note.pinned ? "Unpin" : "Pin"}
           >
             {note.pinned ? "Unpin" : "Pin"}
           </button>
           <button
             onClick={onDelete}
-            className="text-xs px-2 py-1 rounded hover:bg-red-100 dark:hover:bg-red-900 text-red-600 transition"
+            className="text-[10px] sm:text-xs px-1 sm:px-2 py-0.5 rounded hover:bg-red-100 dark:hover:bg-red-900 text-red-600 transition"
             aria-label="Delete"
           >
             Delete

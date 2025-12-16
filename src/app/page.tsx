@@ -180,28 +180,28 @@ export default function Home() {
     >
       {/* Header */}
       <header
-        className="w-full px-6 py-5 flex items-center justify-between backdrop-blur-sm"
+        className="w-full px-1 sm:px-6 py-2 sm:py-5 flex flex-wrap items-center justify-between backdrop-blur-sm"
         style={{
           background: "linear-gradient(90deg, rgba(255,244,230,0.95), rgba(255,250,240,0.95))",
-          borderBottom: "1px solid rgba(34,20,6,0.12)", // thin visible warm border
-          boxShadow: "inset 0 -1px 0 rgba(255,255,255,0.45)", // subtle inner highlight
+          borderBottom: "1px solid rgba(34,20,6,0.12)",
+          boxShadow: "inset 0 -1px 0 rgba(255,255,255,0.45)",
         }}
       >
-        <div className="flex items-center gap-4 ml-4 md:ml-8">
+        <div className="flex items-center gap-1 sm:gap-4 ml-1 sm:ml-4 md:ml-8 min-w-0">
           <div
-            className="flex items-center justify-center w-11 h-11 rounded-lg text-white font-semibold shadow-sm"
+            className="flex items-center justify-center w-7 h-7 sm:w-11 sm:h-11 rounded-lg text-white font-semibold shadow-sm"
             style={{ background: "linear-gradient(135deg, #f59e0b, #ef7a1a)" }}
           >
-            P
+            <span className="text-xs sm:text-base">P</span>
           </div>
-          <div className="flex flex-col leading-tight">
-            <h1 className="text-lg md:text-2xl font-semibold text-black dark:text-zinc-50">Polash · PocketNotes</h1>
-            <p className="text-xs md:text-sm text-zinc-500 dark:text-zinc-400">Offline‑first • Fast • Reliable</p>
+          <div className="flex flex-col leading-tight min-w-0">
+            <h1 className="text-xs sm:text-lg md:text-2xl font-semibold text-black dark:text-zinc-50 truncate">Polash · PocketNotes</h1>
+            <p className="text-[9px] sm:text-xs md:text-sm text-zinc-500 dark:text-zinc-400 truncate">Offline‑first • Fast • Reliable</p>
           </div>
         </div>
 
         {/* Center stats: total notes, pinned count, online status */}
-        <div className="hidden md:flex items-center gap-3">
+        <div className="hidden sm:flex items-center gap-3 min-w-0">
           <div className="px-3 py-1 rounded-full bg-white/70 dark:bg-zinc-800/60 border border-black/4 text-sm">
             {Array.isArray(notes) ? notes.length : 0} notes
           </div>
@@ -227,8 +227,41 @@ export default function Home() {
           )}
         </div>
 
+        {/* For xs screens, show stats in a compact row */}
+        <div className="flex sm:hidden items-center gap-1 mt-1 min-w-0">
+          <div
+            className="px-2 py-0.5 rounded-full bg-white/70 dark:bg-zinc-800/60 border border-black/4 text-[10px] truncate"
+            title={`${Array.isArray(notes) ? notes.length : 0} notes`}
+          >
+            {Array.isArray(notes) ? notes.length : 0} notes
+          </div>
+          <div
+            className="px-2 py-0.5 rounded-full bg-white/70 dark:bg-zinc-800/60 border border-black/4 text-[10px] truncate"
+            title={`${((notes ?? []) as Note[]).filter((n) => n.pinned).length} pinned`}
+          >
+            {((notes ?? []) as Note[]).filter((n) => n.pinned).length} pinned
+          </div>
+          <div
+            className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] ${isOnline ? "bg-green-50 text-green-700" : "bg-yellow-50 text-yellow-700"}`}
+            title={isOnline ? "Online" : "Offline"}
+          >
+            <span className={`w-2 h-2 rounded-full ${isOnline ? "bg-green-600" : "bg-yellow-400"}`} />
+            {isOnline ? "Online" : "Offline"}
+          </div>
+          {failedQueue && failedQueue.length > 0 && (
+            <button
+              onClick={() => setShowFailed((s) => !s)}
+              className="px-2 py-0.5 rounded-full bg-red-50 text-red-700 text-[10px] border border-red-100"
+              aria-label="Show failed syncs"
+              title={`${failedQueue.length} failed`}
+            >
+              🔴 {failedQueue.length} failed
+            </button>
+          )}
+        </div>
+
         {/* Sync status indicator */}
-        <div className="flex items-center gap-4 mr-4 md:mr-8">
+        <div className="flex items-center gap-2 sm:gap-4 mr-1 sm:mr-4 md:mr-8">
           <SyncStatus status={syncStatus} />
         </div>
       </header>
@@ -260,23 +293,24 @@ export default function Home() {
       )}
 
       {/* Main Content */}
-      <main className="flex-1 w-full max-w-4xl mx-auto px-4 py-8 flex flex-col">
+      <main className="flex-1 w-full max-w-100 sm:max-w-4xl mx-auto px-0.5 sm:px-4 py-2 sm:py-8 flex flex-col">
         {/* Search & Filters */}
-        <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-8">
-          <div className="flex justify-center w-full sm:w-96">
-            <div className="w-full max-w-2xl bg-white rounded-full shadow-md border border-gray-300 flex items-center focus-within:ring-2 focus-within:ring-blue-500 transition px-2">
-              <span className="pl-3 text-gray-500 text-lg">🔍</span>
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-4 sm:mb-8">
+          <div className="flex justify-center w-full sm:w-96 min-w-0">
+            <div className="w-full max-w-full sm:max-w-2xl bg-white rounded-full shadow-md border border-gray-300 flex items-center focus-within:ring-2 focus-within:ring-blue-500 transition px-1 sm:px-2 min-w-0">
+              <span className="pl-1 sm:pl-3 text-gray-500 text-base sm:text-lg">🔍</span>
               <input
                 type="text"
                 placeholder="Search title, description or tags..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="flex-1 py-3 px-4 text-base rounded-full outline-none border-none bg-transparent text-gray-900 dark:text-zinc-50"
+                className="flex-1 py-2 sm:py-3 px-2 sm:px-4 text-xs sm:text-base rounded-full outline-none border-none bg-transparent text-gray-900 dark:text-zinc-50 min-w-0"
+                style={{ minWidth: 0 }}
               />
               {search && (
                 <button
                   onClick={() => setSearch("")}
-                  className="pr-3 text-gray-400 hover:text-red-500 text-xl"
+                  className="pr-1 sm:pr-3 text-gray-400 hover:text-red-500 text-lg sm:text-xl"
                   aria-label="Clear search"
                 >
                   ✖
@@ -284,22 +318,21 @@ export default function Home() {
               )}
             </div>
           </div>
-
-          <div className="flex gap-3 items-center">
+          <div className="flex gap-1 sm:gap-3 items-center">
             <button
-              className={`h-12 px-5 rounded-2xl text-sm font-semibold flex items-center justify-center ${filter === "all" ? "bg-indigo-600 text-white shadow-md" : "bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200"}`}
+              className={`h-8 sm:h-12 px-2 sm:px-5 rounded-2xl text-[10px] sm:text-sm font-semibold flex items-center justify-center ${filter === "all" ? "bg-indigo-600 text-white shadow-md" : "bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200"}`}
               onClick={() => setFilter("all")}
             >
               All
             </button>
             <button
-              className={`h-12 px-5 rounded-2xl text-sm font-semibold flex items-center justify-center ${filter === "pinned" ? "bg-indigo-600 text-white shadow-md" : "bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200"}`}
+              className={`h-8 sm:h-12 px-2 sm:px-5 rounded-2xl text-[10px] sm:text-sm font-semibold flex items-center justify-center ${filter === "pinned" ? "bg-indigo-600 text-white shadow-md" : "bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200"}`}
               onClick={() => setFilter("pinned")}
             >
               Pinned
             </button>
             <button
-              className={`h-12 px-5 rounded-2xl text-sm font-semibold flex items-center justify-center ${filter === "recent" ? "bg-indigo-600 text-white shadow-md" : "bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200"}`}
+              className={`h-8 sm:h-12 px-2 sm:px-5 rounded-2xl text-[10px] sm:text-sm font-semibold flex items-center justify-center ${filter === "recent" ? "bg-indigo-600 text-white shadow-md" : "bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200"}`}
               onClick={() => setFilter("recent")}
             >
               Recent
@@ -308,11 +341,16 @@ export default function Home() {
         </div>
 
         {/* Notes List */}
-        <section role="list" className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <section
+          role="list"
+          className="mt-2 sm:mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-6 justify-items-center"
+        >
           {loading ? (
             // Remove AnimatePresence here, just render skeletons
             [...Array(6)].map((_, i) => (
-              <NoteSkeleton key={i} />
+              <motion.div key={i} className="w-full max-w-87.5">
+                <NoteSkeleton />
+              </motion.div>
             ))
           ) : sortedNotes.length === 0 ? (
             <div className="col-span-full text-center text-zinc-400 py-16">
@@ -328,7 +366,7 @@ export default function Home() {
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 20, scale: 0.98 }}
                   transition={{ duration: 0.25 }}
-                  className="h-60" // <-- Add this line for fixed card height
+                  className="h-60 w-full max-w-87.5 mx-auto"
                 >
                   <NoteCard
                     note={note}
@@ -346,7 +384,7 @@ export default function Home() {
 
       {/* Add Note Floating Button */}
       <button
-        className="fixed bottom-8 right-8 z-50 flex items-center justify-center w-16 h-16 rounded-full bg-linear-to-br from-indigo-600 to-sky-500 text-white text-3xl shadow-2xl hover:scale-105 transform transition"
+        className="fixed bottom-2 right-2 sm:bottom-8 sm:right-8 z-50 flex items-center justify-center w-10 h-10 sm:w-16 sm:h-16 rounded-full bg-linear-to-br from-indigo-600 to-sky-500 text-white text-xl sm:text-3xl shadow-2xl hover:scale-105 transform transition"
         aria-label="Add Note"
         onClick={() => {
           setEditNote(null);

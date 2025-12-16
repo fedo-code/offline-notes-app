@@ -9,3 +9,8 @@ export async function PUT() {
 export async function GET() {
   return new Response(JSON.stringify({}), { status: 200 });
 }
+
+// Minimal POST handler for completeness
+export async function POST() {
+  return new Response(JSON.stringify({}), { status: 200 });
+}
