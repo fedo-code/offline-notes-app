@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import useLocalStorage from "./useLocalStorage";
-import { syncAction, SyncAction } from "../services/mockSync";
-type InternalSyncAction = SyncAction & { retries?: number };
+import { syncNote } from "../services/syncService";
+type InternalSyncAction = { actionId: string; payload: any; retries?: number };
 
 export function useSyncQueue(options?: {
-  onSynced?: (action: SyncAction) => void;
-  onError?: (action: SyncAction) => void;
+  onSynced?: (action: InternalSyncAction) => void;
+  onError?: (action: InternalSyncAction) => void;
 }) {
   const [syncQueue, setSyncQueue] = useLocalStorage<InternalSyncAction[]>("syncQueue", []);
   const [failedQueue, setFailedQueue] = useLocalStorage<InternalSyncAction[]>("syncFailed", []);
@@ -66,27 +66,6 @@ export function useSyncQueue(options?: {
     };
   }, []);
 
-  const mockSync = async (action: SyncAction) => {
-    // If MSW not available, treat as failure (but to avoid 404 spam, return ok when offline)
-    if (!mswAvailable) {
-      // If offline, treat as transient success so UI remains stable; actual sync will occur once MSW available
-      return { ok: true, actionId: action.actionId };
-    }
-    try {
-      const res = await fetch("/sync", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(action),
-      });
-      if (res.status === 404) return { ok: false, status: 404 };
-      if (!res.ok) return { ok: false, status: res.status };
-      const data = await res.json();
-      return data;
-    } catch {
-      return { ok: false };
-    }
-  };
-
   // helper delay
   const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
 
@@ -115,8 +94,8 @@ export function useSyncQueue(options?: {
           let done = false;
           while (attempts <= MAX_RETRIES && !done) {
             setSyncStatus("pending");
-            const res = await mockSync(action);
-            if (res && res.ok) {
+            const res = await syncNote(action);
+            if (res === "synced") {
               // remove from pending queue
               setSyncQueue((prev) => (prev ?? []).filter((a) => a.actionId !== action.actionId));
               options?.onSynced?.(action);
@@ -152,7 +131,7 @@ export function useSyncQueue(options?: {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mswReady, isOnline, syncQueue, failedQueue]);
 
-  const enqueueAction = (action: SyncAction) => {
+  const enqueueAction = (action: InternalSyncAction) => {
     // ensure retries reset on new enqueue
     const toEnqueue: InternalSyncAction = { ...action, retries: 0 };
     setSyncQueue((prev) => [...(prev ?? []), toEnqueue]);
@@ -186,7 +165,6 @@ export function useSyncQueue(options?: {
     setSyncQueue,
   } as const;
 }
-export type { SyncAction };
 // add default export to support default imports
 export default useSyncQueue;
 

@@ -1,4 +1,5 @@
 import React from "react";
+import { motion } from "framer-motion";
 import { Note } from "../hooks/useNotes";
 
 type Props = {
@@ -24,21 +25,25 @@ export default function NoteCard({ note, onEdit, onPin, onDelete, onOpen }: Prop
   };
 
   return (
-    <article
-      className="card-surface p-4 rounded-lg shadow-sm flex flex-col gap-3 cursor-pointer"
-      onClick={() => onOpen?.()}
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          onOpen?.();
-        }
+    <motion.article
+      className="card-surface p-4 rounded-lg shadow-sm flex flex-col gap-3"
+      whileHover={{
+        scale: 1.03,
+        boxShadow: "0 8px 32px 0 rgba(31, 38, 135, 0.15)",
+        transition: { type: "spring", stiffness: 300, damping: 20 },
       }}
     >
       {/* header: left = dot + small pinned placeholder; right = action buttons */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3 min-w-0">
+      <div
+        className="flex items-center justify-between rounded-md px-2 py-1 mb-2"
+        style={{
+          background: "linear-gradient(90deg, rgba(255,244,230,0.95), rgba(255,250,240,0.95))",
+          borderBottom: "1px solid rgba(34,20,6,0.12)",
+          boxShadow: "inset 0 -1px 0 rgba(255,255,255,0.45)",
+        }}
+      >
+        {/* Left: Pinned indicator and title */}
+        <div className="flex items-center gap-2">
           <div className="shrink-0 flex items-center" onClick={(e) => e.stopPropagation()} tabIndex={-1} role="img" aria-label={`Sync status: ${note.syncStatus}`}>
             <div
               className={dotClass}
@@ -57,43 +62,28 @@ export default function NoteCard({ note, onEdit, onPin, onDelete, onOpen }: Prop
           </div>
         </div>
 
+        {/* Right: Action buttons as text */}
         <div className="flex items-center gap-2">
           <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onEdit?.();
-            }}
-            aria-label="Edit note"
-            title="Edit"
-            className="w-9 h-9 flex items-center justify-center rounded-md bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-200 transition"
+            onClick={onEdit}
+            className="text-xs px-2 py-1 rounded hover:bg-zinc-200 dark:hover:bg-zinc-700 transition"
+            aria-label="Edit"
           >
-            ✏️
+            Edit
           </button>
           <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onPin?.();
-            }}
-            aria-label={note.pinned ? "Unpin note" : "Pin note"}
-            aria-pressed={note.pinned}
-            title={note.pinned ? "Unpin" : "Pin"}
-            className="w-9 h-9 flex items-center justify-center rounded-md bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-200 transition"
+            onClick={onPin}
+            className="text-xs px-2 py-1 rounded hover:bg-zinc-200 dark:hover:bg-zinc-700 transition"
+            aria-label={note.pinned ? "Unpin" : "Pin"}
           >
-            📍
+            {note.pinned ? "Unpin" : "Pin"}
           </button>
           <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onDelete?.();
-            }}
-            aria-label="Delete note"
-            title="Delete"
-            className="w-9 h-9 flex items-center justify-center rounded-md bg-zinc-100 dark:bg-zinc-800 hover:bg-red-50 dark:hover:bg-red-900 text-red-600 dark:text-red-400 transition"
+            onClick={onDelete}
+            className="text-xs px-2 py-1 rounded hover:bg-red-100 dark:hover:bg-red-900 text-red-600 transition"
+            aria-label="Delete"
           >
-            🗑️
+            Delete
           </button>
         </div>
       </div>
@@ -102,29 +92,28 @@ export default function NoteCard({ note, onEdit, onPin, onDelete, onOpen }: Prop
       <div className="min-w-0">
         <h3 className="text-sm font-semibold text-gray-900 dark:text-zinc-50 truncate">{note.title || "Untitled"}</h3>
 
-        <p
-          className="text-xs text-zinc-500 dark:text-zinc-400 mt-2"
-          style={{
-            maxHeight: "5.2rem",
-            overflow: "hidden",
-            display: "-webkit-box",
-            WebkitLineClamp: 4,
-            WebkitBoxOrient: "vertical",
-            whiteSpace: "normal",
-            overflowWrap: "anywhere",
-            wordBreak: "break-word",
-          }}
+        <div
+          className="text-sm text-zinc-600 dark:text-zinc-300 mt-2 line-clamp-3 min-h-[3.6em] flex-1 cursor-pointer"
+          onClick={onOpen}
+          tabIndex={0}
+          role="button"
+          aria-label={`View note: ${note.title}`}
+          onKeyPress={e => { if (e.key === 'Enter') onOpen?.(); }}
+          style={{ display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}
         >
-          {(note.content || "").length > 140 ? (note.content || "").slice(0, 140).trimEnd() + "…" : note.content || ""}
-        </p>
+          {note.content}
+        </div>
 
         <div className="mt-2 text-xs text-zinc-400">
           <div>Created: {formatDate(note.createdAt)}</div>
-          {note.updatedAt && note.updatedAt !== note.createdAt && (
-            <div>Updated: {formatDate(note.updatedAt)}</div>
-          )}
+          <div className="text-xs text-zinc-400 mt-1 min-h-[1.25em]">
+            {note.updatedAt !== note.createdAt
+              ? <>Updated: {formatDate(note.updatedAt)}</>
+              : <span>&nbsp;</span> /* empty placeholder to reserve space */
+            }
+          </div>
         </div>
       </div>
-    </article>
+    </motion.article>
   );
 }

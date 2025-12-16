@@ -6,7 +6,9 @@ import ConfirmDialog from "../components/ConfirmDialog";
 import SyncStatus from "../components/SyncStatus";
 import Toast from "../components/Toast";
 import useNotes, { Note } from "../hooks/useNotes";
-import useSyncQueue, { SyncAction } from "../hooks/useSyncQueue";
+import useSyncQueue from "../hooks/useSyncQueue";
+import { motion, AnimatePresence } from "framer-motion";
+type SyncAction = { actionId: string; type: string; payload?: any; timestamp?: number; };
 import { generateId } from "../utils/id";
 
 export default function Home() {
@@ -21,11 +23,11 @@ export default function Home() {
 
   // sync queue hook (now includes failedQueue + retry helpers)
   const { enqueueAction, syncStatus, failedQueue, retryFailed, clearFailed } = useSyncQueue({
-    onSynced: (action: SyncAction) => {
+    onSynced: (action) => {
       const id = action.payload?.id;
       if (id) markSynced(id);
     },
-    onError: (action: SyncAction) => {
+    onError: (action) => {
       const id = action.payload?.id;
       if (id) markError(id);
     },
@@ -56,19 +58,51 @@ export default function Home() {
     notesRef.current = notes;
   }, [notes]);
 
+  // 1. Add loading state
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Add a small delay so skeletons are visible and animate
+    const timeout = setTimeout(() => setLoading(false), 400);
+    return () => clearTimeout(timeout);
+  }, [notes]);
+
+  // 2. Skeleton loader component
+  function NoteSkeleton() {
+    return (
+      <motion.div
+        layout
+        initial={{ opacity: 0, scale: 0.96 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.96 }}
+        transition={{ duration: 0.3 }}
+        className="animate-pulse rounded-xl bg-zinc-100 dark:bg-zinc-800 p-4 h-48 flex flex-col gap-3"
+      >
+        <div className="h-6 bg-zinc-200 dark:bg-zinc-700 rounded w-2/3 mb-2" />
+        <div className="h-4 bg-zinc-200 dark:bg-zinc-700 rounded w-full mb-1" />
+        <div className="h-4 bg-zinc-200 dark:bg-zinc-700 rounded w-5/6 mb-1" />
+        <div className="h-4 bg-zinc-200 dark:bg-zinc-700 rounded w-1/2" />
+        <div className="flex gap-2 mt-auto">
+          <div className="h-6 w-16 bg-zinc-200 dark:bg-zinc-700 rounded-full" />
+          <div className="h-6 w-10 bg-zinc-200 dark:bg-zinc-700 rounded-full" />
+        </div>
+      </motion.div>
+    );
+  }
+
   // 2️⃣ Add/Edit Note
   const handleSaveNote = (data: { title: string; content: string; tags: string[]; pinned?: boolean }) => {
     if (editNote) {
       update(editNote.id, { title: data.title, content: data.content, tags: data.tags, pinned: data.pinned });
       const updatedNote = notesRef.current.find((n) => n.id === editNote.id) || null;
       if (updatedNote) {
-        enqueueAction({ actionId: generateId(), type: "UPDATE", payload: updatedNote, timestamp: Date.now() });
-      }
+          enqueueAction({ actionId: generateId(), type: "UPDATE", payload: updatedNote, timestamp: Date.now() } as any);
+        }
       setToast({ open: true, message: "Note updated.", type: "success" });
     } else {
       const newNote = create({ title: data.title, content: data.content, tags: data.tags, pinned: data.pinned });
-      enqueueAction({ actionId: generateId(), type: "CREATE", payload: newNote, timestamp: Date.now() });
-      setToast({ open: true, message: "Note added.", type: "success" });
+        enqueueAction({ actionId: generateId(), type: "CREATE", payload: newNote, timestamp: Date.now() } as any);
+        setToast({ open: true, message: "Note added.", type: "success" });
     }
     setModalOpen(false);
     setEditNote(null);
@@ -84,7 +118,7 @@ export default function Home() {
   const handleDelete = () => {
     if (!noteToDelete) return;
     remove(noteToDelete.id);
-    enqueueAction({ actionId: generateId(), type: "DELETE", payload: noteToDelete, timestamp: Date.now() });
+    enqueueAction({ actionId: generateId(), type: "DELETE", payload: noteToDelete, timestamp: Date.now() } as any);
     setNoteToDelete(null);
     setToast({ open: true, message: "Note deleted.", type: "success" });
   };
@@ -94,7 +128,7 @@ export default function Home() {
     togglePin(id);
     const updatedNote = notesRef.current.find((n) => n.id === id) || null;
     if (updatedNote) {
-      enqueueAction({ actionId: generateId(), type: "UPDATE", payload: updatedNote, timestamp: Date.now() });
+      enqueueAction({ actionId: generateId(), type: "UPDATE", payload: updatedNote, timestamp: Date.now() } as any);
     }
   };
 
@@ -205,15 +239,15 @@ export default function Home() {
           <div className="card-surface p-4 flex flex-col gap-3">
             <div className="flex items-center justify-between">
               <div className="font-semibold">Failed sync actions ({failedQueue.length})</div>
-              <div className="flex gap-2">
-                <button onClick={() => failedQueue.forEach((f: SyncAction) => retryFailed(f.actionId))} className="btn-pill">Retry all</button>
+                <div className="flex gap-2">
+                <button onClick={() => failedQueue.forEach((f) => retryFailed(f.actionId))} className="btn-pill">Retry all</button>
                 <button onClick={() => clearFailed()} className="btn-pill">Clear all</button>
               </div>
             </div>
             <div className="grid gap-2">
-              {failedQueue.map((f: SyncAction) => (
+              {failedQueue.map((f) => (
                 <div key={f.actionId} className="flex items-center justify-between p-2 rounded-md bg-white/60">
-                  <div className="text-sm truncate">{f.type} — {f.payload?.title ?? f.payload?.id}</div>
+                  <div className="text-sm truncate">{(f as any).type} — {(f as any).payload?.title ?? (f as any).payload?.id}</div>
                   <div className="flex gap-2">
                     <button onClick={() => retryFailed(f.actionId)} className="icon-chip" aria-label="Retry">↻</button>
                     <button onClick={() => clearFailed(f.actionId)} className="icon-chip" aria-label="Clear">✖</button>
@@ -275,21 +309,37 @@ export default function Home() {
 
         {/* Notes List */}
         <section role="list" className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {sortedNotes.length === 0 ? (
+          {loading ? (
+            // Remove AnimatePresence here, just render skeletons
+            [...Array(6)].map((_, i) => (
+              <NoteSkeleton key={i} />
+            ))
+          ) : sortedNotes.length === 0 ? (
             <div className="col-span-full text-center text-zinc-400 py-16">
               No notes yet. Click the <b>+</b> button to add your first note!
             </div>
           ) : (
-            sortedNotes.map((note) => (
-              <NoteCard
-                key={note.id}
-                note={note}
-                onEdit={() => handleEdit(note)}
-                onPin={() => handlePin(note.id)}
-                onDelete={() => setNoteToDelete(note)}
-                onOpen={() => setViewNote(note)}
-              />
-            ))
+            <AnimatePresence>
+              {sortedNotes.map((note) => (
+                <motion.div
+                  key={note.id}
+                  layout
+                  initial={{ opacity: 0, y: 20, scale: 0.98 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 20, scale: 0.98 }}
+                  transition={{ duration: 0.25 }}
+                  className="h-60" // <-- Add this line for fixed card height
+                >
+                  <NoteCard
+                    note={note}
+                    onEdit={() => handleEdit(note)}
+                    onPin={() => handlePin(note.id)}
+                    onDelete={() => setNoteToDelete(note)}
+                    onOpen={() => setViewNote(note)}
+                  />
+                </motion.div>
+              ))}
+            </AnimatePresence>
           )}
         </section>
       </main>
